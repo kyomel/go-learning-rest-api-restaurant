@@ -5,5 +5,7 @@ import (
 )
 
 func LoadRoutes(e *echo.Echo, handler *handler) {
-	e.GET("/menu", handler.getMenu)
+	e.GET("/menu", handler.GetMenuList)
+	e.POST("/order", handler.Order)
+	e.GET("/order/:order_id", handler.GetOrderInfo)
 }

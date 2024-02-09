@@ -4,6 +4,7 @@ import (
 	"rest-api-restaurant/internal/database"
 	"rest-api-restaurant/internal/delivery/rest"
 	mRepo "rest-api-restaurant/internal/repository/menu"
+	oRepo "rest-api-restaurant/internal/repository/order"
 	rUseCase "rest-api-restaurant/internal/usecase/resto"
 
 	"github.com/labstack/echo/v4"
@@ -57,7 +58,8 @@ func main() {
 	db := database.GetDB(dbAddress)
 
 	menuRepo := mRepo.GetRepository(db)
-	restoUseCase := rUseCase.GetUseCase(menuRepo)
+	orderRepo := oRepo.GetRepository(db)
+	restoUseCase := rUseCase.GetUseCase(menuRepo, orderRepo)
 	h := rest.NewHandler(restoUseCase)
 
 	rest.LoadRoutes(e, h)
