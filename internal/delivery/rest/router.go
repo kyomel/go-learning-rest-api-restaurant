@@ -5,7 +5,14 @@ import (
 )
 
 func LoadRoutes(e *echo.Echo, handler *handler) {
-	e.GET("/menu", handler.GetMenuList)
-	e.POST("/order", handler.Order)
-	e.GET("/order/:order_id", handler.GetOrderInfo)
+	menuGroup := e.Group("/menu")
+	menuGroup.GET("", handler.GetMenuList)
+
+	orderGroup := e.Group("/order")
+	orderGroup.POST("", handler.Order)
+	e.GET("/:order_id", handler.GetOrderInfo)
+
+	userGroup := e.Group("/user")
+	userGroup.POST("/register", handler.RegisterUser)
+	userGroup.POST("/login", handler.Login)
 }

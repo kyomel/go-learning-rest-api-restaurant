@@ -1,10 +1,12 @@
 package resto
 
 import (
+	"errors"
 	"rest-api-restaurant/internal/model"
 	"rest-api-restaurant/internal/model/constant"
 	"rest-api-restaurant/internal/repository/menu"
 	"rest-api-restaurant/internal/repository/order"
+	"rest-api-restaurant/internal/repository/user"
 
 	"github.com/google/uuid"
 )
@@ -12,12 +14,14 @@ import (
 type restoUsecase struct {
 	menuRepo  menu.Repository
 	orderRepo order.Repository
+	userRepo  user.Repository
 }
 
-func GetUseCase(menuRepo menu.Repository, orderRepo order.Repository) Usecase {
+func GetUseCase(menuRepo menu.Repository, orderRepo order.Repository, userRepo user.Repository) Usecase {
 	return &restoUsecase{
 		menuRepo:  menuRepo,
 		orderRepo: orderRepo,
+		userRepo:  userRepo,
 	}
 }
 
@@ -64,4 +68,54 @@ func (r *restoUsecase) GetOrderInfo(request model.GetOrderInfoRequest) (model.Or
 	}
 
 	return orderData, nil
+}
+
+func (r *restoUsecase) RegisterUser(request model.RegisterRequest) (model.User, error) {
+	userRegistered, err := r.userRepo.CheckRegistered(request.Username)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if userRegistered {
+		return model.User{}, errors.New("user already registered")
+	}
+
+	userHash, err := r.userRepo.GenerateUserHash(request.Password)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	userData, err := r.userRepo.RegisterUser(model.User{
+		ID:       uuid.New().String(),
+		Username: request.Username,
+		Hash:     userHash,
+	})
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return userData, nil
+}
+
+func (r *restoUsecase) Login(request model.LoginRequest) (model.UserSession, error) {
+	userData, err := r.userRepo.GetUserData(request.Username)
+	if err != nil {
+		return model.UserSession{}, err
+	}
+
+	verified, err := r.userRepo.VerifyLogin(request.Username, request.Password, userData)
+	if err != nil {
+		return model.UserSession{}, err
+	}
+
+	if !verified {
+		return model.UserSession{}, errors.New("can't verify user login")
+	}
+
+	userSession, err := r.userRepo.CreateUserSession(userData.ID)
+	if err != nil {
+		return model.UserSession{}, err
+	}
+
+	return userSession, nil
 }
