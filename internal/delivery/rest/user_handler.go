@@ -6,6 +6,7 @@ import (
 	"rest-api-restaurant/internal/model"
 
 	"github.com/labstack/echo/v4"
+	"github.com/sirupsen/logrus"
 )
 
 func (h *handler) RegisterUser(c echo.Context) error {
@@ -40,6 +41,10 @@ func (h *handler) Login(c echo.Context) error {
 
 	sessionData, err := h.restoUsecase.Login(request)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("[delivery][rest][user_handler][Login] unable to login")
+
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": err.Error(),
 		})

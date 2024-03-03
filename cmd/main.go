@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"rest-api-restaurant/internal/database"
 	"rest-api-restaurant/internal/delivery/rest"
+	"rest-api-restaurant/internal/logger"
 	mRepo "rest-api-restaurant/internal/repository/menu"
 	oRepo "rest-api-restaurant/internal/repository/order"
 	uRepo "rest-api-restaurant/internal/repository/user"
@@ -56,6 +57,7 @@ const (
 // }
 
 func main() {
+	logger.Init()
 	e := echo.New()
 	// localhost:14045/menu/food
 
