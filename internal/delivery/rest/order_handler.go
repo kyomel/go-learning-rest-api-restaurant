@@ -5,12 +5,16 @@ import (
 	"net/http"
 	"rest-api-restaurant/internal/model"
 	"rest-api-restaurant/internal/model/constant"
+	"rest-api-restaurant/internal/tracing"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 )
 
 func (h *handler) Order(c echo.Context) error {
+	ctx, span := tracing.CreateSpan(c.Request().Context(), "Order")
+	defer span.End()
+
 	var request model.OrderMenuRequest
 	err := json.NewDecoder(c.Request().Body).Decode(&request)
 	if err != nil {
@@ -22,7 +26,7 @@ func (h *handler) Order(c echo.Context) error {
 	userID := c.Request().Context().Value(constant.AuthContextKey).(string)
 	request.UserID = userID
 
-	orderData, err := h.restoUsecase.Order(request)
+	orderData, err := h.restoUsecase.Order(ctx, request)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": err.Error(),
