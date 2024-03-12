@@ -31,7 +31,7 @@ func (r *restoUsecase) GetMenuList(ctx context.Context, menuType string) ([]mode
 	ctx, span := tracing.CreateSpan(ctx, "GetMenuList")
 	defer span.End()
 
-	return r.menuRepo.GetMenuList(menuType)
+	return r.menuRepo.GetMenuList(ctx, menuType)
 }
 
 func (r *restoUsecase) Order(ctx context.Context, request model.OrderMenuRequest) (model.Order, error) {
@@ -41,7 +41,7 @@ func (r *restoUsecase) Order(ctx context.Context, request model.OrderMenuRequest
 	productOrderData := make([]model.ProductOrder, len(request.OrderProducts))
 
 	for i, orderProduct := range request.OrderProducts {
-		menuData, err := r.menuRepo.GetMenu(orderProduct.OrderCode)
+		menuData, err := r.menuRepo.GetMenu(ctx, orderProduct.OrderCode)
 		if err != nil {
 			return model.Order{}, err
 		}
@@ -63,7 +63,7 @@ func (r *restoUsecase) Order(ctx context.Context, request model.OrderMenuRequest
 		ReferenceID:   request.ReferenceID,
 	}
 
-	createdOrderData, err := r.orderRepo.CreateOrder(orderData)
+	createdOrderData, err := r.orderRepo.CreateOrder(ctx, orderData)
 	if err != nil {
 		return model.Order{}, err
 	}
@@ -90,7 +90,7 @@ func (r *restoUsecase) RegisterUser(ctx context.Context, request model.RegisterR
 	ctx, span := tracing.CreateSpan(ctx, "RegisterUser")
 	defer span.End()
 
-	userRegistered, err := r.userRepo.CheckRegistered(request.Username)
+	userRegistered, err := r.userRepo.CheckRegistered(ctx, request.Username)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -99,12 +99,12 @@ func (r *restoUsecase) RegisterUser(ctx context.Context, request model.RegisterR
 		return model.User{}, errors.New("user already registered")
 	}
 
-	userHash, err := r.userRepo.GenerateUserHash(request.Password)
+	userHash, err := r.userRepo.GenerateUserHash(ctx, request.Password)
 	if err != nil {
 		return model.User{}, err
 	}
 
-	userData, err := r.userRepo.RegisterUser(model.User{
+	userData, err := r.userRepo.RegisterUser(ctx, model.User{
 		ID:       uuid.New().String(),
 		Username: request.Username,
 		Hash:     userHash,
@@ -120,12 +120,12 @@ func (r *restoUsecase) Login(ctx context.Context, request model.LoginRequest) (m
 	ctx, span := tracing.CreateSpan(ctx, "Login")
 	defer span.End()
 
-	userData, err := r.userRepo.GetUserData(request.Username)
+	userData, err := r.userRepo.GetUserData(ctx, request.Username)
 	if err != nil {
 		return model.UserSession{}, err
 	}
 
-	verified, err := r.userRepo.VerifyLogin(request.Username, request.Password, userData)
+	verified, err := r.userRepo.VerifyLogin(ctx, request.Username, request.Password, userData)
 	if err != nil {
 		return model.UserSession{}, err
 	}
@@ -134,7 +134,7 @@ func (r *restoUsecase) Login(ctx context.Context, request model.LoginRequest) (m
 		return model.UserSession{}, errors.New("can't verify user login")
 	}
 
-	userSession, err := r.userRepo.CreateUserSession(userData.ID)
+	userSession, err := r.userRepo.CreateUserSession(ctx, userData.ID)
 	if err != nil {
 		return model.UserSession{}, err
 	}
@@ -146,7 +146,7 @@ func (r *restoUsecase) CheckSession(ctx context.Context, data model.UserSession)
 	ctx, span := tracing.CreateSpan(ctx, "CheckSession")
 	defer span.End()
 
-	userID, err = r.userRepo.CheckSession(data)
+	userID, err = r.userRepo.CheckSession(ctx, data)
 	if err != nil {
 		return "", err
 	}

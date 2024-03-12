@@ -9,6 +9,7 @@ import (
 	mRepo "rest-api-restaurant/internal/repository/menu"
 	oRepo "rest-api-restaurant/internal/repository/order"
 	uRepo "rest-api-restaurant/internal/repository/user"
+	"rest-api-restaurant/internal/tracing"
 	rUseCase "rest-api-restaurant/internal/usecase/resto"
 	"time"
 
@@ -57,6 +58,8 @@ const (
 // }
 
 func main() {
+	// Jaeger Init
+	tracing.Init("http://localhost:14268/api/traces")
 	logger.Init()
 	e := echo.New()
 	// localhost:14045/menu/food

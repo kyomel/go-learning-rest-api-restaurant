@@ -1,8 +1,11 @@
 package menu
 
-import "rest-api-restaurant/internal/model"
+import (
+	"context"
+	"rest-api-restaurant/internal/model"
+)
 
 type Repository interface {
-	GetMenuList(menuType string) ([]model.MenuItem, error)
-	GetMenu(orderCode string) (model.MenuItem, error)
+	GetMenuList(ctx context.Context, menuType string) ([]model.MenuItem, error)
+	GetMenu(ctx context.Context, orderCode string) (model.MenuItem, error)
 }
